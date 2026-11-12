@@ -1,1 +1,39 @@
+name: Build LINGO ONE APK
 
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract Android project
+        run: |
+          mkdir source
+          unzip -o LINGO_ONE_Android_Source.zip -d source
+          find source -type f | head -50
+
+      - name: Build APK
+        run: |
+          cd source
+          find . -name gradlew -type f
+          chmod +x $(find . -name gradlew -type f | head -1)
+          ./$(find . -name gradlew | head -1 | sed 's|^\./||') assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LINGO-ONE-APK
+          path: source/**/build/outputs/apk/debug/*.apk
